@@ -89,7 +89,7 @@ var Tumblr = function(consumerKey, consumerSecret, logLevel) {
 		return sha1(key.map((v)=> v^0x5c).concat(sha1(key.map((v) => v^0x36).concat(data))))
 	}
 
-	function base64(bytes) {
+	function base64encode(bytes) {
 		var b64strings = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9','+','/'];
 		var result=[];
 		for (var i=2; i<bytes.length; i+=3) {
@@ -114,13 +114,26 @@ var Tumblr = function(consumerKey, consumerSecret, logLevel) {
 		return result.join('');
 	}
 
+	function utf8ToBytes(string) {
+		var s = unescape(encodeURIComponent(string));
+		var r = [];
+		for (var i=0; i<s.length; i++) {
+			r.push(s.charCodeAt(i));
+		}
+		return r;
+	}
+
 	this.oauthClient = OAuth({
 		consumer: {
 			key: consumerKey,
 			secret: consumerSecret
 		},
 		signature_method: 'HMAC-SHA1',
-		hash_function: function(base_string, key) {base64encode(hmacSha1(base_string, key));}
+		hash_function: function(baseString, key) {
+			baseString = typeof baseString === 'string' ? utf8ToBytes(baseString) : baseString;
+			key = typeof key === 'string' ? utf8ToBytes(key) : key;
+			return base64encode(hmacSha1(baseString, key));
+		}
 	})
 	this.logLevel = (typeof logLevel === 'number') ? logLevel : Tumblr.LOG_NONE;
 	this.token = null;
@@ -196,7 +209,7 @@ Tumblr.prototype.setToken = function(accessKey, accessSecret) {
  * 
  * @return returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype._oauthRequest = function(method, url, data, callbacks, opts, t) {
+Tumblr.prototype._oauthRequest = Tumblr._log('_oauthRequest()', function(method, url, data, callbacks, opts, t) {
 	var token = t ? t : this.token;
 
 	var args=this._buildArgs(callbacks, opts);
@@ -207,10 +220,10 @@ Tumblr.prototype._oauthRequest = function(method, url, data, callbacks, opts, t)
 	}
 	args.headers = this.oauthClient.mergeObject(
 		args.headers ? args.headers : {},
-		this.oauth.toHeader(this.oauth.authorize({method:method, url:url, data:data}, token)));
-	args.data = this._buildQuery(args.data, false);
+		this.oauthClient.toHeader(this.oauthClient.authorize(args, token)));
+	args.data = Tumblr._buildQuery(args.data, false);
 	return GM_xmlhttpRequest(args);
-}
+});
 
 Tumblr.prototype._apiKeyRequest = function(method, url, data, callbacks, opts) {
 	return this._simpleRequest(method, url, Object.assign({'api_key': this.oauthClient.consumer.key}, data), callbacks, opts);
@@ -228,22 +241,26 @@ Tumblr.prototype._simpleRequest = function(method, url, data, callbacks, opts) {
 
 Tumblr.prototype._buildArgs = function(callbacks, opts) {
 	var args={};
-	args.context=opts.context;
-	args.synchronous=opts.synchronous;
-	args.timeout=opts.timeout;
+	if(opts) {
+		args.context=opts.context;
+		args.synchronous=opts.synchronous;
+		args.timeout=opts.timeout;
+	}
 
-	args.onabort=callbacks.onabort;
-	args.onerror=callbacks.onerror;
-	args.onload=callbacks.onload;
-	args.onprogress=callbacks.onprogress;
-	args.onreadystatechange=callbacks.onreadystatechange;
-	args.ontimeout=callbacks.ontimeout;
+	if(callbacks) {
+		args.onabort=callbacks.onabort;
+		args.onerror=callbacks.onerror;
+		args.onload=callbacks.onload;
+		args.onprogress=callbacks.onprogress;
+		args.onreadystatechange=callbacks.onreadystatechange;
+		args.ontimeout=callbacks.ontimeout;
+	}
 	return args;
 };
 
 
-Tumblr.prototype.getRequestToken = Tumblr._log(function(callbacks, opts) {
-	return this._oauthRequest('POST', 'https://www.tumblr.com/oauth/request_token', null, callbacks, opts, null);
+Tumblr.prototype.getRequestToken = Tumblr._log('getRequestToken()', function(callbackURL, callbacks, opts) {
+	return this._oauthRequest('POST', 'https://www.tumblr.com/oauth/request_token', {oauth_callback: callbackURL}, callbacks, opts, null);
 });
 
 /**
@@ -251,7 +268,7 @@ Tumblr.prototype.getRequestToken = Tumblr._log(function(callbacks, opts) {
  * @param {Object} opts
  * @param {Object} [token]
  */
-Tumblr.prototype.getAccessToken = Tumblr._log(function(callbacks, opts, token) {
+Tumblr.prototype.getAccessToken = Tumblr._log('getAccessToken', function(callbacks, opts, token) {
 	return this._oauthRequest('POST', 'https://www.tumblr.com/oauth/access_token', null, callbacks, opts, token);
 });
 
