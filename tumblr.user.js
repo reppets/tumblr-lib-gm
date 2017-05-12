@@ -263,6 +263,10 @@ Tumblr.prototype.getRequestToken = Tumblr._log('getRequestToken()', function(cal
 	return this._oauthRequest('POST', 'https://www.tumblr.com/oauth/request_token', {oauth_callback: callbackURL}, callbacks, opts, null);
 });
 
+Tumblr.prototype.getAuthorizeURL = function(requestToken) {
+	return Tumblr.AUTHORIZE_URL+Tumblr._buildQuery({oauth_token: requestToken}, true);
+}
+
 /**
  * @param {Object} callbacks
  * @param {Object} opts
