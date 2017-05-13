@@ -50,7 +50,7 @@ var Tumblr = function(consumerKey, consumerSecret, logLevel) {
 				words[j] = (block[j*4]<<24 | block[j*4+1]<<16 | block[j*4+2]<<8 | block[j*4+3]) >>> 0;
 			}
 			for (;j<80; j++) {
-				words[j]=rotateLeft((words[j-3] ^ words[j-8] ^ words[j-14] ^ words[j-16]) >>> 0, 1)
+				words[j]=rotateLeft((words[j-3] ^ words[j-8] ^ words[j-14] ^ words[j-16]) >>> 0, 1);
 			}
 
 			var v = [h[0], h[1], h[2], h[3], h[4]];
@@ -134,10 +134,10 @@ var Tumblr = function(consumerKey, consumerSecret, logLevel) {
 			key = typeof key === 'string' ? utf8ToBytes(key) : key;
 			return base64encode(hmacSha1(baseString, key));
 		}
-	})
+	});
 	this.logLevel = (typeof logLevel === 'number') ? logLevel : Tumblr.LOG_NONE;
 	this.token = null;
-}
+};
 
 /** Tumblr authorization URL. */
 Tumblr.AUTHORIZE_URL = 'https://www.tumblr.com/oauth/authorize';
