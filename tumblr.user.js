@@ -86,7 +86,7 @@ var Tumblr = function(consumerKey, consumerSecret, logLevel) {
 		var blockLength=64;
 		if (key.length > blockLength) {key = sha1(key);}
 		key=key.concat(new Array(blockLength-key.length).fill(0));
-		return sha1(key.map((v)=> v^0x5c).concat(sha1(key.map((v) => v^0x36).concat(data))))
+		return sha1(key.map((v)=> v^0x5c).concat(sha1(key.map((v) => v^0x36).concat(data))));
 	}
 
 	function base64encode(bytes) {
@@ -187,7 +187,7 @@ Tumblr._buildQuery = function(map, withQuestion) {
 		return '';
 	}
 	return (withQuestion ? '?' : '') +ar.join('&');
-}
+};
 
 /** sets access token.
  * 
@@ -218,10 +218,11 @@ Tumblr.prototype._oauthRequest = Tumblr._log('_oauthRequest()', function(method,
 	if (method==='POST') {
 		args.headers = {'Content-Type': 'application/x-www-form-urlencoded'};
 	}
+	args.data = data;
 	args.headers = this.oauthClient.mergeObject(
 		args.headers ? args.headers : {},
 		this.oauthClient.toHeader(this.oauthClient.authorize(args, token)));
-	args.data = Tumblr._buildQuery(args.data, false);
+	args.data = Tumblr._buildQuery(data, false);
 	return GM_xmlhttpRequest(args);
 });
 
@@ -268,12 +269,14 @@ Tumblr.prototype.getAuthorizeURL = function(requestToken) {
 }
 
 /**
- * @param {Object} callbacks
- * @param {Object} opts
- * @param {Object} [token]
+ * @param {string} oauthToken
+ * @param {string} oauthTokenSecret
+ * @param {string} oauthVerifier
+ * @param {Object} [callbacks]
+ * @param {Object} [opts]
  */
-Tumblr.prototype.getAccessToken = Tumblr._log('getAccessToken', function(callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://www.tumblr.com/oauth/access_token', null, callbacks, opts, token);
+Tumblr.prototype.getAccessToken = Tumblr._log('getAccessToken()', function(oauthToken, oauthTokenSecret, oauthVerifier, callbacks, opts) {
+	return this._oauthRequest('POST', 'https://www.tumblr.com/oauth/access_token', {oauth_verifier: oauthVerifier}, callbacks, opts, {key: oauthToken, secret:oauthTokenSecret});
 });
 
 /**
@@ -360,7 +363,7 @@ Tumblr.prototype.getQueue = Tumblr._log('getQueue()', function(blogID, params, c
  * @param {Object} [token]
  */
 Tumblr.prototype.getDrafts = Tumblr._log('getDrafts()', function(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/'+blogID+'/posts/draft', params, callbacks, opts, token)
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/'+blogID+'/posts/draft', params, callbacks, opts, token);
 });
 
 
