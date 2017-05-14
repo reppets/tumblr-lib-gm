@@ -39,6 +39,50 @@ try {
 		};
 	}
 
+	function testWithToken(client) {
+		client.getBlogInfo(Values.blogID,{onload: (response)=> {
+			console.log(response);
+			write('<hr><h3>getBlogInfo</h3><div>Status '+response.status+'</div>');
+		}}, {synchronous: true});
+
+		client.getAvatar(Values.blogID,30,{onload: (response)=> {
+			console.log(response);
+			write('<hr><h3>getAvatar</h3><div>Status '+response.status+'</div>');
+		}}, {synchronous: true});
+
+		write('<hr><h3>getAvatarURL</h3><div><img src="'+client.getAvatarURL(Values.blogID,30)+'"></div>');
+
+		client.getLikes(Values.blogIDgetLikes, {}, {onload: (response)=> {
+			console.log(response);
+			write('<hr><h3>getLikes</h3><div>Status '+response.status+'</div>');
+		}}, {synchronous: true});
+		
+		client.getFollowers(Values.blogIdAuthorized, {}, {onload: (response)=> {
+			console.log(response);
+			write('<hr><h3>getFollowers</h3><div>Status '+response.status+'</div>');
+		}}, {synchronous: true});
+
+		client.getPosts(Values.blogID, '' , {}, {onload: (response)=> {
+			console.log(response);
+			write('<hr><h3>getPosts</h3><div>Status '+response.status+'</div>');
+		}}, {synchronous: true});
+		
+		client.getQueue(Values.blogID , {}, {onload: (response)=> {
+			console.log(response);
+			write('<hr><h3>getQueue</h3><div>Status '+response.status+'</div>');
+		}}, {synchronous: true});
+		
+		client.getDrafts(Values.blogID , {}, {onload: (response)=> {
+			console.log(response);
+			write('<hr><h3>getDrafts</h3><div>Status '+response.status+'</div>');
+		}}, {synchronous: true});
+		
+		client.getSubmissions(Values.blogID , {}, {onload: (response)=> {
+			console.log(response);
+			write('<hr><h3>getSubmissions</h3><div>Status '+response.status+'</div>');
+		}}, {synchronous: true});
+	}
+
 	(function() {
 		if (window.location.search.indexOf('oauth_token')>0 && window.location.search.indexOf('oauth_verifier')>0 && window.opener) {
 			var search=splitParameter(window.location.search);
@@ -64,12 +108,13 @@ try {
 					for (var node of mr.addedNodes) {
 						try {
 							if (node.attributes.getNamedItem('name').value === oauthToken) {
-								console.log('go!');
 								var oauthVerifier=node.attributes.getNamedItem('value').value;
-								console.log(oauthVerifier);
 								client.getAccessToken(oauthToken, oauthTokenSecret, oauthVerifier, {onload: (response) => {
 									write('<hr><h3>getAccessToken</h3><div>Status '+response.status+'</div>');
 									console.log(response);
+									var params=splitParameter(response.responseText);
+									client.setToken(params.oauth_token, params.oauth_token_secret);
+									testWithToken(client);
 								}});
 							}
 						} catch (e) {console.log(e);}
@@ -84,3 +129,5 @@ try {
 } catch (e) {
 	console.log(e);
 }
+
+// oauth_token=7Eo48sFctWy1HbKBisD8CVHiv85zfRp88uXggCs395eEDqMlER&oauth_token_secret=X9Y0MaIpss8Z7SywJ7v6kIrNDZ8buxFIm8ouMltuBUKcIZ23pc

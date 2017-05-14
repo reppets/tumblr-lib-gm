@@ -230,14 +230,14 @@ Tumblr.prototype._apiKeyRequest = function(method, url, data, callbacks, opts) {
 	return this._simpleRequest(method, url, Object.assign({'api_key': this.oauthClient.consumer.key}, data), callbacks, opts);
 };
 
-Tumblr.prototype._simpleRequest = function(method, url, data, callbacks, opts) {
+Tumblr.prototype._simpleRequest = Tumblr._log('_simpleRequest()', function(method, url, data, callbacks, opts) {
 	var args=this._buildArgs(callbacks, opts);
 	args.method=method;
 	var parser=Tumblr._parseURL(url);
 	parser.search=Tumblr._buildQuery(data, true);
 	args.url=parser.href;
 	return GM_xmlhttpRequest(args);
-};
+});
 
 
 Tumblr.prototype._buildArgs = function(callbacks, opts) {
@@ -280,17 +280,17 @@ Tumblr.prototype.getAccessToken = Tumblr._log('getAccessToken()', function(oauth
 });
 
 /**
- * @param {string} blogName - specifies blog ID such as 'example.tumblr.com'
+ * @param {string} blogID - specifies blog ID such as 'example.tumblr.com'
  * @param {Object} callbacks
  * @param {Object} opts
  * @param {Object} token
  */
-Tumblr.prototype.getBlogInfo = Tumblr._log('getBlogInfo()', function(blogName, callbacks, opts) {
+Tumblr.prototype.getBlogInfo = Tumblr._log('getBlogInfo()', function(blogID, callbacks, opts) {
 	return this._apiKeyRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/info', null, callbacks, opts);
 });
 
 /**
- * @param {string} blogName - specifies blog ID such as 'example.tumblr.com'
+ * @param {string} blogID - specifies blog ID such as 'example.tumblr.com'
  * @param {number} size - size of the avatar. It must be one of (16, 24, 30, 40, 48, 64, 96, 128, 512). The default value is 64.
  * @param {Object} callbacks
  * @param {Object} opts
@@ -302,7 +302,17 @@ Tumblr.prototype.getAvatar = Tumblr._log('getAvatar()', function(blogID, size, c
 });
 
 /**
- * @param {string} blogName - specifies blog ID such as 'example.tumblr.com'
+ * @param {string} blogID - specifies blog ID such as 'example.tumblr.com'
+ * @param {number} size - size of the avatar. It must be one of (16, 24, 30, 40, 48, 64, 96, 128, 512). The default value is 64.
+ * @param {Object} callbacks
+ * @param {Object} opts
+ * @param {Object} token
+ */
+Tumblr.prototype.getAvatarURL = Tumblr._log('getAvatar()', function(blogID, size) {
+	return 'https://api.tumblr.com/v2/blog/' + blogID + '/avatar/' + (size ? size : '');
+});
+/**
+ * @param {string} blogID - specifies blog ID such as 'example.tumblr.com'
  * @param {Object} [params] - map of parameters. Valid parameters are 'limit', 'offset', 'before' and 'after'.
  * @param {Object} [callbacks]
  * @param {Object} [opts]
@@ -312,30 +322,19 @@ Tumblr.prototype.getLikes = Tumblr._log('getLikes()', function(blogID, params, c
 });
 
 /**
- * @param {string} blogName - specifies blog ID such as 'example.tumblr.com'
- * @param {Object} [params] - map of parameters. Valid parameters are 'limit', 'offset' and 'query'.
- * @param {Object} [callbacks]
- * @param {Object} [opts]
- * @param {Object} [token]
- */
-Tumblr.prototype.getFollowing = Tumblr._log('getFollowing()', function(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/'+blogID+'/followers', params, callbacks, opts, token);
-});
-
-/**
- * @param {string} blogName - specifies blog ID such as 'example.tumblr.com'
+ * @param {string} blogID - specifies blog ID such as 'example.tumblr.com'
  * @param {Object} [params] - map of parameters. Valid parameters are 'limit' and 'offset'.
  * @param {Object} [callbacks]
  * @param {Object} [opts]
  * @param {Object} [token]
  */
 Tumblr.prototype.getFollowers = Tumblr._log('getFollowers()', function(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/'+blogID+'/following', params, callbacks, opts, token);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/'+blogID+'/followers', params, callbacks, opts, token);
 });
 
 /**
- * @param {string} blogName - specifies blog ID such as 'example.tumblr.com'
- * @param {string} [type] - The type of post to return. Specify one of the following:  'text', 'quote', 'link', 'answer', 'video', 'audio', 'photo', 'chat'.
+ * @param {string} blogID - specifies blog ID such as 'example.tumblr.com'
+ * @param {string} [type] - The type of post to return. Specify one of the following:  'text', 'quote', 'link', 'answer', 'video', 'audio', 'photo', 'chat'. All types will be returned if omitted.
  * @param {Object} [params] - map of parameters. Valid parameters are 'id', 'tag', 'limit', 'offset', 'reblog_info', 'notes_info' and 'filter'.
  * @param {Object} [callbacks]
  * @param {Object} [opts]
@@ -345,7 +344,7 @@ Tumblr.prototype.getPosts = Tumblr._log('getPosts()', function(blogID, type, par
 });
 
 /**
- * @param {string} blogName - specifies blog ID such as 'example.tumblr.com'
+ * @param {string} blogID - specifies blog ID such as 'example.tumblr.com'
  * @param {Object} [params] - map of parameters. Valid parameters are 'offset', 'limit' and 'filter'.
  * @param {Object} [callbacks]
  * @param {Object} [opts]
@@ -356,7 +355,7 @@ Tumblr.prototype.getQueue = Tumblr._log('getQueue()', function(blogID, params, c
 });
 
 /**
- * @param {string} blogName - specifies blog ID such as 'example.tumblr.com'
+ * @param {string} blogID - specifies blog ID such as 'example.tumblr.com'
  * @param {Object} [params] - map of parameters. Valid parameters are 'before_id' and 'filter'.
  * @param {Object} [callbacks]
  * @param {Object} [opts]
@@ -368,7 +367,7 @@ Tumblr.prototype.getDrafts = Tumblr._log('getDrafts()', function(blogID, params,
 
 
 /**
- * @param {string} blogName - specifies blog ID such as 'example.tumblr.com'
+ * @param {string} blogID - specifies blog ID such as 'example.tumblr.com'
  * @param {Object} [params] - map of parameters. Valid parameters are 'offset' and 'filter'.
  * @param {Object} [callbacks]
  * @param {Object} [opts]
@@ -379,7 +378,7 @@ Tumblr.prototype.getSubmissions = Tumblr._log('getSubmissions()', function(blogI
 });
 
 /**
- * @param {string} blogName - specifies blog ID such as 'example.tumblr.com'
+ * @param {string} blogID - specifies blog ID such as 'example.tumblr.com'
  * @param {Object} params - map of parameters. See https://www.tumblr.com/docs/en/api/v2#posting .
  * @param {Object} [callbacks]
  * @param {Object} [opts]
@@ -390,7 +389,7 @@ Tumblr.prototype.post = Tumblr._log('post()', function(blogID, params, callbacks
 });
 
 /**
- * @param {string} blogName - specifies blog ID such as 'example.tumblr.com'
+ * @param {string} blogNID - specifies blog ID such as 'example.tumblr.com'
  * @param {Object} params - map of parameters. See https://www.tumblr.com/docs/en/api/v2#posting .
  * @param {Object} [callbacks]
  * @param {Object} [opts]
@@ -401,7 +400,7 @@ Tumblr.prototype.edit = Tumblr._log('edit()', function(blogID, params, callbacks
 });
 
 /**
- * @param {string} blogName - specifies blog ID such as 'example.tumblr.com'
+ * @param {string} blogID - specifies blog ID such as 'example.tumblr.com'
  * @param {Object} params - map of parameters. Valid parameters are 'id', 'reblog_key', 'comment' and 'native_inline_images'.
  * @param {Object} [callbacks]
  * @param {Object} [opts]
@@ -412,7 +411,7 @@ Tumblr.prototype.reblog = Tumblr._log('reblog()', function(blogID, params, callb
 });
 
 /**
- * @param {string} blogName - specifies blog ID such as 'example.tumblr.com'
+ * @param {string} blogID - specifies blog ID such as 'example.tumblr.com'
  * @param {Object} id - The ID of the post to delete.
  * @param {Object} [callbacks]
  * @param {Object} [opts]

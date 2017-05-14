@@ -7,5 +7,6 @@
 var Values = {
 	consumerKey:'',
 	consumerSecret: '',
-	callbackURL: ''
+	callbackURL: '',
+	blogID: ''
 };
