@@ -6,5 +6,6 @@
 // ==/UserScript==
 var Values = {
 	consumerKey:'',
-	consumerSecret: ''
+	consumerSecret: '',
+	callbackURL: ''
 };
