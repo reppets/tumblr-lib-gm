@@ -7,6 +7,13 @@
 var Values = {
 	consumerKey:'',
 	consumerSecret: '',
-	callbackURL: '',
-	blogID: ''
+	callbackURL: 'http://reppets.net/tumblr-lib-gm/test.html?callback=true',
+	blogID: '',
+	blogIDgetLikes: '',
+	blogIdAuthorized: '',
+	blogIdUpdate: '',
+	reblogPostId: '160482464815',
+	reblogKey: '2L2oDCqY',
+	blogUrlToFollow: 'staff.tumblr.com',
+	tag: '写真'
 };

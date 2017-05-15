@@ -215,14 +215,22 @@ Tumblr.prototype._oauthRequest = Tumblr._log('_oauthRequest()', function(method,
 	var args=this._buildArgs(callbacks, opts);
 	args.method=method;
 	args.url=url;
+	args.data = data;
 	if (method==='POST') {
 		args.headers = {'Content-Type': 'application/x-www-form-urlencoded'};
 	}
-	args.data = data;
 	args.headers = this.oauthClient.mergeObject(
 		args.headers ? args.headers : {},
 		this.oauthClient.toHeader(this.oauthClient.authorize(args, token)));
-	args.data = Tumblr._buildQuery(data, false);
+	if (method==='GET') {
+		var parser = Tumblr._parseURL(url);
+		parser.search = Tumblr._buildQuery(data, true);
+		args.url = parser.href;
+		args.data = {};
+	} else {
+		args.data = Tumblr._buildQuery(data, false);
+	}
+	
 	return GM_xmlhttpRequest(args);
 });
 
@@ -233,9 +241,14 @@ Tumblr.prototype._apiKeyRequest = function(method, url, data, callbacks, opts) {
 Tumblr.prototype._simpleRequest = Tumblr._log('_simpleRequest()', function(method, url, data, callbacks, opts) {
 	var args=this._buildArgs(callbacks, opts);
 	args.method=method;
-	var parser=Tumblr._parseURL(url);
-	parser.search=Tumblr._buildQuery(data, true);
-	args.url=parser.href;
+	if (method==='GET') {
+		var parser=Tumblr._parseURL(url);
+		parser.search=Tumblr._buildQuery(data, true);
+		args.url=parser.href;
+	} else {
+		args.url=url;
+		args.data=Tumblr._buildQuery(data, false);
+	}
 	return GM_xmlhttpRequest(args);
 });
 
@@ -462,16 +475,6 @@ Tumblr.prototype.getUserFollowing = Tumblr._log('getUserFollowing()', function(p
 });
 
 /**
- * @param {Object} [params] - map of parameters. Valid parameters are 'limit' and 'offset'.
- * @param {Object} [callbacks]
- * @param {Object} [opts]
- * @param {Object} [token]
- */
-Tumblr.prototype.getUserFollowing = Tumblr._log('getUserFollowing()', function(params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/following', params, callbacks, opts, token);
-});
-
-/**
  * @param {Object} url - The URL of the blog to follow.
  * @param {Object} [callbacks]
  * @param {Object} [opts]
@@ -521,5 +524,5 @@ Tumblr.prototype.unlike = Tumblr._log('unlike()', function(id, reblogKey, callba
  * @param {Object} [token]
  */
 Tumblr.prototype.getTagged = Tumblr._log('getTagged()', function(tag, params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/tagged', Object.assign({tag: tag}, params), callbacks, opts, token);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/tagged', Object.assign({tag: encodeURIComponent(tag)}, params), callbacks, opts, token);
 });
