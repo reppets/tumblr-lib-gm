@@ -1,10 +1,38 @@
-// ==UserScript==
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: tumblr.user.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: tumblr.user.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>// ==UserScript==
 // @name        tumblr-lib-gm
 // @description Tumblr api(v2) library for Grease Monkey scripts.
 // @licence     https://raw.githubusercontent.com/reppets/tumblr-lib-gm/master/LICENSE
 // @namespace   reppets.net
 // @version     1.0.0
-// @require     https://cdn.rawgit.com/ddo/oauth-1.0a/91557b7ef8c38dad6a22f9471a5d0dc216a1afd4/oauth-1.0a.js
+// @require     https://cdn.rawgit.com/ddo/oauth-1.0a/2.1.0/oauth-1.0a.js
 // @grant       GM_xmlhttpRequest
 // ==/UserScript==
 
@@ -21,19 +49,19 @@ var Tumblr = function(consumerKey, consumerSecret, logLevel) {
 		source = source.concat(0x80);
 
 		function rotateLeft(word, nBits) {
-			return ((word << nBits) | (word >>> (32-nBits))) >>>0;
+			return ((word &lt;&lt; nBits) | (word >>> (32-nBits))) >>>0;
 		}
 
 		function sha1Block(i) {
-			if (source.length <= i*64) {
+			if (source.length &lt;= i*64) {
 				return (new Array(56)).fill(0)
-						.concat([0,0,0,0,(source.length-1)*8>>24&0xff,(source.length-1)*8>>16&0xff,(source.length-1)*8>>8&0xff,(source.length-1)*8&0xff]);
-			} else if (source.length <= (i+1)*64-8) {
+						.concat([0,0,0,0,(source.length-1)*8>>24&amp;0xff,(source.length-1)*8>>16&amp;0xff,(source.length-1)*8>>8&amp;0xff,(source.length-1)*8&amp;0xff]);
+			} else if (source.length &lt;= (i+1)*64-8) {
 				return source
 						.slice(i*64,source.length)
 						.concat(new Array(56-(source.length-i*64)).fill(0))
-						.concat([0,0,0,0,(source.length-1)*8>>24&0xff,(source.length-1)*8>>16&0xff,(source.length-1)*8>>8&0xff,(source.length-1)*8&0xff]);
-			} else if (source.length <= (i+1)*64) {
+						.concat([0,0,0,0,(source.length-1)*8>>24&amp;0xff,(source.length-1)*8>>16&amp;0xff,(source.length-1)*8>>8&amp;0xff,(source.length-1)*8&amp;0xff]);
+			} else if (source.length &lt;= (i+1)*64) {
 				return source
 						.slice(i*64,source.length)
 						.concat(new Array(64-(source.length%64)).fill(0));
@@ -42,43 +70,43 @@ var Tumblr = function(consumerKey, consumerSecret, logLevel) {
 			}
 		}
 
-		var sha1NumOfBlocks = source.length <= 56 ? 1 : Math.ceil((source.length - 56) / 64) + 1;
+		var sha1NumOfBlocks = source.length &lt;= 56 ? 1 : Math.ceil((source.length - 56) / 64) + 1;
 		var h = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0];
-		for (var i=0; i<sha1NumOfBlocks; i++) {
+		for (var i=0; i&lt;sha1NumOfBlocks; i++) {
 			var words=[];
 			var block = sha1Block(i);
-			for (var j=0; j<16; j++) {
-				words[j] = (block[j*4]<<24 | block[j*4+1]<<16 | block[j*4+2]<<8 | block[j*4+3]) >>> 0;
+			for (var j=0; j&lt;16; j++) {
+				words[j] = (block[j*4]&lt;&lt;24 | block[j*4+1]&lt;&lt;16 | block[j*4+2]&lt;&lt;8 | block[j*4+3]) >>> 0;
 			}
-			for (;j<80; j++) {
+			for (;j&lt;80; j++) {
 				words[j]=rotateLeft((words[j-3] ^ words[j-8] ^ words[j-14] ^ words[j-16]) >>> 0, 1);
 			}
 
 			var v = [h[0], h[1], h[2], h[3], h[4]];
-			for (var t=0; t<20; t++) {
-				var tmp = (rotateLeft(v[0],5)+((v[1]&v[2] | ~v[1]&v[3]) >>> 0)+v[4]+words[t]+0x5a827999) >>> 0;
+			for (var t=0; t&lt;20; t++) {
+				var tmp = (rotateLeft(v[0],5)+((v[1]&amp;v[2] | ~v[1]&amp;v[3]) >>> 0)+v[4]+words[t]+0x5a827999) >>> 0;
 				v[4]=v[3]; v[3]=v[2]; v[2]=rotateLeft(v[1], 30); v[1]=v[0]; v[0]=tmp;
 			}
-			for (; t<40; t++) {
+			for (; t&lt;40; t++) {
 				var tmp = (rotateLeft(v[0],5)+((v[1]^v[2]^v[3]) >>> 0)+v[4]+words[t]+0x6ed9eba1) >>> 0;
 				v[4]=v[3]; v[3]=v[2]; v[2]=rotateLeft(v[1], 30); v[1]=v[0]; v[0]=tmp;
 			}
-			for (; t<60; t++) {
-				var tmp = (rotateLeft(v[0],5)+((v[1]&v[2] | v[1]&v[3] | v[2]&v[3]) >>> 0)+v[4]+words[t]+0x8f1bbcdc) >>> 0;
+			for (; t&lt;60; t++) {
+				var tmp = (rotateLeft(v[0],5)+((v[1]&amp;v[2] | v[1]&amp;v[3] | v[2]&amp;v[3]) >>> 0)+v[4]+words[t]+0x8f1bbcdc) >>> 0;
 				v[4]=v[3]; v[3]=v[2]; v[2]=rotateLeft(v[1], 30); v[1]=v[0]; v[0]=tmp;
 			}
-			for (; t<80; t++) {
+			for (; t&lt;80; t++) {
 				var tmp = (rotateLeft(v[0],5)+((v[1]^v[2]^v[3]) >>> 0)+v[4]+words[t]+0xca62c1d6) >>> 0;
 				v[4]=v[3]; v[3]=v[2]; v[2]=rotateLeft(v[1], 30); v[1]=v[0]; v[0]=tmp;
 			}
-			for(var k=0;k<5;k++) {
+			for(var k=0;k&lt;5;k++) {
 				h[k]=(h[k]+v[k])>>>0;
 			}
 		}
 
 		var result=[];
-		for(var l=0;l<5;l++) {
-			result.push(h[l]>>24&0xff); result.push(h[l]>>16&0xff); result.push(h[l]>>8&0xff); result.push(h[l]&0xff);
+		for(var l=0;l&lt;5;l++) {
+			result.push(h[l]>>24&amp;0xff); result.push(h[l]>>16&amp;0xff); result.push(h[l]>>8&amp;0xff); result.push(h[l]&amp;0xff);
 		}
 		return result;
 	}
@@ -93,22 +121,22 @@ var Tumblr = function(consumerKey, consumerSecret, logLevel) {
 	function base64encode(bytes) {
 		var b64strings = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9','+','/'];
 		var result=[];
-		for (var i=2; i<bytes.length; i+=3) {
+		for (var i=2; i&lt;bytes.length; i+=3) {
 			result.push(b64strings[bytes[i-2] >> 2]);
-			result.push(b64strings[(bytes[i-2]&0x3) << 4 | bytes[i-1] >> 4]);
-			result.push(b64strings[(bytes[i-1]&0xf) <<2 | bytes[i] >> 6]);
-			result.push(b64strings[bytes[i]&0x3f]);
+			result.push(b64strings[(bytes[i-2]&amp;0x3) &lt;&lt; 4 | bytes[i-1] >> 4]);
+			result.push(b64strings[(bytes[i-1]&amp;0xf) &lt;&lt;2 | bytes[i] >> 6]);
+			result.push(b64strings[bytes[i]&amp;0x3f]);
 		}
 		if (i==bytes.length) {
 			// 2chars rest
 			result.push(b64strings[bytes[i-2] >> 2]);
-			result.push(b64strings[(bytes[i-2]&0x3) << 4 | bytes[i-1] >> 4]);
-			result.push(b64strings[(bytes[i-1]&0xf) <<2]);
+			result.push(b64strings[(bytes[i-2]&amp;0x3) &lt;&lt; 4 | bytes[i-1] >> 4]);
+			result.push(b64strings[(bytes[i-1]&amp;0xf) &lt;&lt;2]);
 			result.push('=');
 		} else if (i==bytes.length+1) {
 			// 1char rest
 			result.push(b64strings[bytes[i-2] >> 2]);
-			result.push(b64strings[(bytes[i-2]&0x3) << 4 ]);
+			result.push(b64strings[(bytes[i-2]&amp;0x3) &lt;&lt; 4 ]);
 			result.push('=');
 			result.push('=');
 		}
@@ -118,7 +146,7 @@ var Tumblr = function(consumerKey, consumerSecret, logLevel) {
 	function utf8ToBytes(string) {
 		var s = unescape(encodeURIComponent(string));
 		var r = [];
-		for (var i=0; i<s.length; i++) {
+		for (var i=0; i&lt;s.length; i++) {
 			r.push(s.charCodeAt(i));
 		}
 		return r;
@@ -188,7 +216,7 @@ Tumblr._log = function(functionName, f) {
  * 
  * @protected
  * @param {string} url - url to be parsed
- * @return {Element} &lt;a&gt; (anchor) element which represents the passed url.
+ * @return {Element} &amp;lt;a&amp;gt; (anchor) element which represents the passed url.
  */
 Tumblr._parseURL = function(url) {
 	var parser = document.createElement('a');
@@ -215,7 +243,7 @@ Tumblr._buildQuery = function(map, withQuestion) {
 	if (ar.length === 0) {
 		return '';
 	}
-	return (withQuestion ? '?' : '') +ar.join('&');
+	return (withQuestion ? '?' : '') +ar.join('&amp;');
 };
 
 /**
@@ -554,56 +582,40 @@ Tumblr.prototype.reblog = Tumblr._log('reblog()', function(blogID, params, callb
 });
 
 /**
- * delete a post of the blog.
- * 
- * @function
  * @param {string} blogID - specifies blog ID such as 'example.tumblr.com'
  * @param {Object} id - The ID of the post to delete.
- * @param {object} [callbacks] - key-value map of callback functions. Acceptable  keys are 'onabort', 'onerror', 'onload', 'onprogress', 'onreadystatechange' and 'ontimeout'.
- * @param {object} [opts] - key-value map of options which is passed to GM_xmlHttpRequest. Acceptable keys are 'context', 'synchronous' and 'timeout'.
- * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
- * @return {object} returened object from GM_xmlhttpRequest.
+ * @param {Object} [callbacks]
+ * @param {Object} [opts]
+ * @param {Object} [token]
  */
 Tumblr.prototype.delete = Tumblr._log('delete()', function(blogID, id, callbacks, opts, token) {
 	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + blogID + '/post/delete', {id: id}, callbacks, opts, token);
 });
 
 /**
- * retrieve information of the user.
- * 
- * @function
- * @param {object} [callbacks] - key-value map of callback functions. Acceptable  keys are 'onabort', 'onerror', 'onload', 'onprogress', 'onreadystatechange' and 'ontimeout'.
- * @param {object} [opts] - key-value map of options which is passed to GM_xmlHttpRequest. Acceptable keys are 'context', 'synchronous' and 'timeout'.
- * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
- * @return {object} returened object from GM_xmlhttpRequest.
+ * @param {Object} [callbacks]
+ * @param {Object} [opts]
+ * @param {Object} [token]
  */
 Tumblr.prototype.getUserInfo = Tumblr._log('getUserInfo()', function(callbacks, opts, token) {
 	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/info', null, callbacks, opts, token);
 });
 
 /**
- * retrieve dashboard posts of the user.
- * 
- * @function
- * @param {object} [params] - map of parameters. Valid parameters are 'limit', 'offset', 'type', 'since_id', 'reblog_info' and 'notes_info'.
- * @param {object} [callbacks] - key-value map of callback functions. Acceptable  keys are 'onabort', 'onerror', 'onload', 'onprogress', 'onreadystatechange' and 'ontimeout'.
- * @param {object} [opts] - key-value map of options which is passed to GM_xmlHttpRequest. Acceptable keys are 'context', 'synchronous' and 'timeout'.
- * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
- * @return {object} returened object from GM_xmlhttpRequest.
+ * @param {Object} [params] - map of parameters. Valid parameters are 'limit', 'offset', 'type', 'since_id', 'reblog_info' and 'notes_info'.
+ * @param {Object} [callbacks]
+ * @param {Object} [opts]
+ * @param {Object} [token]
  */
 Tumblr.prototype.getUserDashboard = Tumblr._log('getUserDashboard()', function(params, callbacks, opts, token) {
 	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/dashboard', params, callbacks, opts, token);
 });
 
 /**
- * retrieve likes of the user.
- * 
- * @function
- * @param {object} [params] - map of parameters. Valid parameters are 'limit', 'offset', 'before' and 'after'.
- * @param {object} [callbacks] - key-value map of callback functions. Acceptable  keys are 'onabort', 'onerror', 'onload', 'onprogress', 'onreadystatechange' and 'ontimeout'.
- * @param {object} [opts] - key-value map of options which is passed to GM_xmlHttpRequest. Acceptable keys are 'context', 'synchronous' and 'timeout'.
- * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
- * @return {object} returened object from GM_xmlhttpRequest.
+ * @param {Object} [params] - map of parameters. Valid parameters are 'limit', 'offset', 'before' and 'after'.
+ * @param {Object} [callbacks]
+ * @param {Object} [opts]
+ * @param {Object} [token]
  */
 Tumblr.prototype.getUserLikes = Tumblr._log('getUserLikes()', function(params, callbacks, opts, token) {
 	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/likes', params, callbacks, opts, token);
@@ -611,88 +623,87 @@ Tumblr.prototype.getUserLikes = Tumblr._log('getUserLikes()', function(params, c
 
 
 /**
- * retrieve following of the user.
- * 
- * @function
- * @param {object} [params] - map of parameters. Valid parameters are 'limit' and 'offset'.
- * @param {object} [callbacks] - key-value map of callback functions. Acceptable  keys are 'onabort', 'onerror', 'onload', 'onprogress', 'onreadystatechange' and 'ontimeout'.
- * @param {object} [opts] - key-value map of options which is passed to GM_xmlHttpRequest. Acceptable keys are 'context', 'synchronous' and 'timeout'.
- * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
- * @return {object} returened object from GM_xmlhttpRequest.
+ * @param {Object} [params] - map of parameters. Valid parameters are 'limit' and 'offset'.
+ * @param {Object} [callbacks]
+ * @param {Object} [opts]
+ * @param {Object} [token]
  */
 Tumblr.prototype.getUserFollowing = Tumblr._log('getUserFollowing()', function(params, callbacks, opts, token) {
 	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/following', params, callbacks, opts, token);
 });
 
 /**
- * follows a specified user.
- * 
- * @function
- * @param {object} url - The URL of the blog to follow.
- * @param {object} [callbacks] - key-value map of callback functions. Acceptable  keys are 'onabort', 'onerror', 'onload', 'onprogress', 'onreadystatechange' and 'ontimeout'.
- * @param {object} [opts] - key-value map of options which is passed to GM_xmlHttpRequest. Acceptable keys are 'context', 'synchronous' and 'timeout'.
- * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
- * @return {object} returened object from GM_xmlhttpRequest.
+ * @param {Object} url - The URL of the blog to follow.
+ * @param {Object} [callbacks]
+ * @param {Object} [opts]
+ * @param {Object} [token]
  */
 Tumblr.prototype.follow = Tumblr._log('follow()', function(url, callbacks, opts, token) {
 	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/follow', {url: url}, callbacks, opts, token);
 });
 
 /**
- * unfollows a specified user.
- * 
- * @function
  * @param {string} url - The URL of the blog to unfollow.
- * @param {object} [callbacks] - key-value map of callback functions. Acceptable  keys are 'onabort', 'onerror', 'onload', 'onprogress', 'onreadystatechange' and 'ontimeout'.
- * @param {object} [opts] - key-value map of options which is passed to GM_xmlHttpRequest. Acceptable keys are 'context', 'synchronous' and 'timeout'.
- * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
- * @return {object} returened object from GM_xmlhttpRequest.
+ * @param {Object} [callbacks]
+ * @param {Object} [opts]
+ * @param {Object} [token]
  */
 Tumblr.prototype.unfollow = Tumblr._log('unfollow()', function(url, callbacks, opts, token) {
 	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/unfollow', {url: url}, callbacks, opts, token);
 });
 
 /**
- * likes a specified post.
- * 
- * @function
  * @param {string} id - The ID of the post to like.
  * @param {string} reblogKey - The reblog key for the post id.
- * @param {object} [callbacks] - key-value map of callback functions. Acceptable  keys are 'onabort', 'onerror', 'onload', 'onprogress', 'onreadystatechange' and 'ontimeout'.
- * @param {object} [opts] - key-value map of options which is passed to GM_xmlHttpRequest. Acceptable keys are 'context', 'synchronous' and 'timeout'.
- * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
- * @return {object} returened object from GM_xmlhttpRequest.
+ * @param {Object} [callbacks]
+ * @param {Object} [opts]
+ * @param {Object} [token]
  */
 Tumblr.prototype.like = Tumblr._log('like()', function(id, reblogKey, callbacks, opts, token) {
 	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/like', {id: id, reblog_key: reblogKey}, callbacks, opts, token);
 });
 
 /**
- * unlikes a specified post.
- * 
- * @function
  * @param {string} id - The ID of the post to unlike.
  * @param {string} reblogKey - The reblog key for the post id.
- * @param {object} [callbacks] - key-value map of callback functions. Acceptable  keys are 'onabort', 'onerror', 'onload', 'onprogress', 'onreadystatechange' and 'ontimeout'.
- * @param {object} [opts] - key-value map of options which is passed to GM_xmlHttpRequest. Acceptable keys are 'context', 'synchronous' and 'timeout'.
- * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
- * @return {object} returened object from GM_xmlhttpRequest.
+ * @param {Object} [callbacks]
+ * @param {Object} [opts]
+ * @param {Object} [token]
  */
 Tumblr.prototype.unlike = Tumblr._log('unlike()', function(id, reblogKey, callbacks, opts, token) {
 	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/unlike', {id: id, reblog_key: reblogKey}, callbacks, opts, token);
 });
 
 /**
- * retrieves tagged posts.
- * 
- * @function
  * @param {string} tag - The tag on the posts you'd like to retrieve
  * @param {Object} [params] - map of parameters. Valid parameters are 'before', 'limit' and 'filter'.
- * @param {object} [callbacks] - key-value map of callback functions. Acceptable  keys are 'onabort', 'onerror', 'onload', 'onprogress', 'onreadystatechange' and 'ontimeout'.
- * @param {object} [opts] - key-value map of options which is passed to GM_xmlHttpRequest. Acceptable keys are 'context', 'synchronous' and 'timeout'.
- * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
- * @return {object} returened object from GM_xmlhttpRequest.
+ * @param {Object} [callbacks]
+ * @param {Object} [opts]
+ * @param {Object} [token]
  */
 Tumblr.prototype.getTagged = Tumblr._log('getTagged()', function(tag, params, callbacks, opts, token) {
 	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/tagged', Object.assign({tag: encodeURIComponent(tag)}, params), callbacks, opts, token);
 });
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Tumblr.html">Tumblr</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Wed May 17 2017 01:38:04 GMT+0900 (東京 (標準時))
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
