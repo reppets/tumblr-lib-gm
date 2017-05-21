@@ -168,6 +168,124 @@ try {
 		console.log(response);
 		write('<hr><h3>getTagged</h3><div>Status '+response.status+'</div>');
 
+		// asynchronous pattern
+		client.getBlogInfo(Values.blogID,{onload: function(response) {
+			write('<hr><h3>getBlogInfo</h3><div>Status '+response.status+'</div>');
+			console.log('getBlogInfo', response);
+		}}, {});
+
+		client.getAvatar(Values.blogID,30,{onload: function(response) {
+			write('<hr><h3>getAvatar</h3><div>Status '+response.status+'</div>');
+			console.log('getAvatar', response);
+		}});
+
+		client.getLikes(Values.blogIDgetLikes, {}, {onload: function(response) {
+			write('<hr><h3>getLikes</h3><div>Status '+response.status+'</div>');			
+			console.log('getLikes', response);
+		}});
+
+		client.getFollowers(Values.blogIdAuthorized, {}, {onload: function(response) {
+			write('<hr><h3>getFollowers</h3><div>Status '+response.status+'</div>');
+			console.log('getFollowers', response);
+		}});
+
+		client.getPosts(Values.blogID, '' , {}, {onload: function(response) {
+			write('<hr><h3>getPosts</h3><div>Status '+response.status+'</div>');
+			console.log('getPosts', response);
+		}});
+
+		client.getQueue(Values.blogID , {}, {onload: function(response) {
+			write('<hr><h3>getQueue</h3><div>Status '+response.status+'</div>');
+			console.log('getQueue', response);
+		}});
+
+		client.getDrafts(Values.blogID , {}, {onload: function(response) {
+			write('<hr><h3>getDrafts</h3><div>Status '+response.status+'</div>');
+			console.log('getDrafts', response);
+		}});
+		
+		client.getSubmissions(Values.blogID , {}, {onload: function(response) {
+			write('<hr><h3>getSubmissions</h3><div>Status '+response.status+'</div>');
+			console.log('getSubmissions', response);
+		}});
+
+		client.post(Values.blogIdUpdate, {
+			type: 'text', 
+			title: 'Test Post',
+			body: '<p>This is a test post.</p>'
+		}, {onload: function(response) {
+			console.log('post', response);
+			write('<hr><h3>post</h3><div>Status '+response.status+'</div>');
+			client.edit(Values.blogIdUpdate, {
+				id: response.response.response.id,
+				title: 'Test Post Edited',
+				body: '<p>This is a test post edited.</p>'
+			}, {onload: function(response) {
+				console.log('edit', response);
+				write('<hr><h3>edit</h3><div>Status '+response.status+'</div>');
+			}});
+		}});
+		var postId=JSON.parse(response.responseText).response.id;
+			
+		client.reblog(Values.blogIdUpdate, {
+			id: Values.reblogPostId,
+			reblog_key: Values.reblogKey,
+			comment: 'Testing reblog.'
+		}, {onload: function(response) {
+			console.log('reblog', response);
+			write('<hr><h3>reblog</h3><div>Status '+response.status+'</div>');
+			postId=response.response.response.id;
+			client.delete(Values.blogIdUpdate, postId, {onload: function(response) {
+				console.log('delete', response);
+				write('<hr><h3>delete</h3><div>Status '+response.status+'</div>');
+			}});
+		}});
+
+		
+		client.getUserInfo({onload: function(response) {
+			console.log('getUserInfo', response);
+			write('<hr><h3>getUserInfo</h3><div>Status '+response.status+'</div>');
+		}});
+		
+		client.getUserDashboard({}, {onload: function(response) {
+			console.log('getUserDashboard', response);
+			write('<hr><h3>getUserDashboard</h3><div>Status '+response.status+'</div>');
+		}});
+		
+		client.getUserLikes({}, {onload: function(response) {
+			console.log('getUserLikes', response);
+			write('<hr><h3>getUserLikes</h3><div>Status '+response.status+'</div>');
+		}});
+		
+		client.getUserFollowing({}, {onload: function(response) {
+			console.log('getUserFollowing', response);
+			write('<hr><h3>getUserFollowing</h3><div>Status '+response.status+'</div>');
+		}});
+		
+		client.follow(Values.blogUrlToFollow, {onload: function(response) {
+			console.log('follow', response);
+			write('<hr><h3>follow</h3><div>Status '+response.status+'</div>');
+		}});
+		
+		client.unfollow(Values.blogUrlToFollow, {onload: function(response) {
+			console.log('unfollow', response);
+			write('<hr><h3>unfollow</h3><div>Status '+response.status+'</div>');
+		}});
+		
+		client.like(Values.reblogPostId, Values.reblogKey, {onload: function(response) {
+			console.log('like', response);
+			write('<hr><h3>like</h3><div>Status '+response.status+'</div>');
+		}});
+
+		client.unlike(Values.reblogPostId, Values.reblogKey, {onload: function(response) {
+			console.log('unlike', response);
+			write('<hr><h3>unlike</h3><div>Status '+response.status+'</div>');
+		}});
+		
+		client.getTagged(Values.tag, {}, {onload(response){
+			console.log('getTagged', response);
+			write('<hr><h3>getTagged</h3><div>Status '+response.status+'</div>');
+		}});
 	}
 
 	(function() {

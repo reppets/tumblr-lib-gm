@@ -324,6 +324,7 @@ Tumblr.prototype._buildArgs = function(callbacks, opts) {
 		args.context=opts.context;
 		args.synchronous=opts.synchronous;
 		args.timeout=opts.timeout;
+		args.responseType=opts.responseType;
 	}
 
 	if(callbacks) {
@@ -336,6 +337,18 @@ Tumblr.prototype._buildArgs = function(callbacks, opts) {
 	}
 	return args;
 };
+
+Tumblr.prototype._responseTypeDefault = function(opts, defaultValue) {
+	if (opts) {
+		if (!opts.responseType && opts.synchronous!==true) {
+			opts = Object.assign({}, opts);
+			opts['responseType'] = defaultValue;
+		}
+	} else {
+		opts={responseType: defaultValue};
+	}
+	return opts;
+}
 
 /**
  * retrieves a request token.
@@ -387,7 +400,7 @@ Tumblr.prototype.getAccessToken = Tumblr._log('getAccessToken()', function(oauth
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getBlogInfo = Tumblr._log('getBlogInfo()', function(blogID, callbacks, opts) {
-	return this._apiKeyRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/info', null, callbacks, opts);
+	return this._apiKeyRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/info', null, callbacks, this._responseTypeDefault(opts, 'json'));
 });
 
 /**
@@ -403,7 +416,7 @@ Tumblr.prototype.getBlogInfo = Tumblr._log('getBlogInfo()', function(blogID, cal
  */
 Tumblr.prototype.getAvatar = Tumblr._log('getAvatar()', function(blogID, size, callbacks, opts) {
 	size = size ? size : '';
-	return this._simpleRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/avatar/' + size, null, callbacks, opts);
+	return this._simpleRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/avatar/' + size, null, callbacks, this._responseTypeDefault(opts, 'arraybuffer'));
 });
 
 /**
@@ -429,7 +442,7 @@ Tumblr.prototype.getAvatarURL = Tumblr._log('getAvatar()', function(blogID, size
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getLikes = Tumblr._log('getLikes()', function(blogID, params, callbacks, opts) {
-	return this._apiKeyRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/likes', null, callbacks, opts);
+	return this._apiKeyRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/likes', null, callbacks, this._responseTypeDefault(opts, 'json'));
 });
 
 /**
@@ -444,7 +457,7 @@ Tumblr.prototype.getLikes = Tumblr._log('getLikes()', function(blogID, params, c
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getFollowers = Tumblr._log('getFollowers()', function(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/'+blogID+'/followers', params, callbacks, opts, token);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/'+blogID+'/followers', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 /**
@@ -459,7 +472,7 @@ Tumblr.prototype.getFollowers = Tumblr._log('getFollowers()', function(blogID, p
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getPosts = Tumblr._log('getPosts()', function(blogID, type, params, callbacks, opts) {
-	return this._apiKeyRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/posts' + (type ? '/'+type : ''), params, callbacks, opts);
+	return this._apiKeyRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/posts' + (type ? '/'+type : ''), params, callbacks, this._responseTypeDefault(opts, 'json'));
 });
 
 /**
@@ -474,7 +487,7 @@ Tumblr.prototype.getPosts = Tumblr._log('getPosts()', function(blogID, type, par
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getQueue = Tumblr._log('getQueue()', function(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/posts/queue', params, callbacks, opts, token);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/posts/queue', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 /**
@@ -489,7 +502,7 @@ Tumblr.prototype.getQueue = Tumblr._log('getQueue()', function(blogID, params, c
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getDrafts = Tumblr._log('getDrafts()', function(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/'+blogID+'/posts/draft', params, callbacks, opts, token);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/'+blogID+'/posts/draft', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 
@@ -505,7 +518,7 @@ Tumblr.prototype.getDrafts = Tumblr._log('getDrafts()', function(blogID, params,
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getSubmissions = Tumblr._log('getSubmissions()', function(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/posts/submission', params, callbacks, opts, token);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/posts/submission', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 /**
@@ -520,7 +533,7 @@ Tumblr.prototype.getSubmissions = Tumblr._log('getSubmissions()', function(blogI
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.post = Tumblr._log('post()', function(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + blogID +'/post', params, callbacks, opts, token);
+	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + blogID +'/post', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 /**
@@ -535,7 +548,7 @@ Tumblr.prototype.post = Tumblr._log('post()', function(blogID, params, callbacks
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.edit = Tumblr._log('edit()', function(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + blogID +'/post/edit', params, callbacks, opts, token);
+	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + blogID +'/post/edit', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 /**
@@ -550,7 +563,7 @@ Tumblr.prototype.edit = Tumblr._log('edit()', function(blogID, params, callbacks
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.reblog = Tumblr._log('reblog()', function(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + blogID + '/post/reblog', params, callbacks, opts, token);
+	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + blogID + '/post/reblog', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 /**
@@ -565,7 +578,7 @@ Tumblr.prototype.reblog = Tumblr._log('reblog()', function(blogID, params, callb
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.delete = Tumblr._log('delete()', function(blogID, id, callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + blogID + '/post/delete', {id: id}, callbacks, opts, token);
+	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + blogID + '/post/delete', {id: id}, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 /**
@@ -578,7 +591,7 @@ Tumblr.prototype.delete = Tumblr._log('delete()', function(blogID, id, callbacks
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getUserInfo = Tumblr._log('getUserInfo()', function(callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/info', null, callbacks, opts, token);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/info', null, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 /**
@@ -592,7 +605,7 @@ Tumblr.prototype.getUserInfo = Tumblr._log('getUserInfo()', function(callbacks, 
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getUserDashboard = Tumblr._log('getUserDashboard()', function(params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/dashboard', params, callbacks, opts, token);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/dashboard', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 /**
@@ -606,7 +619,7 @@ Tumblr.prototype.getUserDashboard = Tumblr._log('getUserDashboard()', function(p
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getUserLikes = Tumblr._log('getUserLikes()', function(params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/likes', params, callbacks, opts, token);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/likes', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 
@@ -621,7 +634,7 @@ Tumblr.prototype.getUserLikes = Tumblr._log('getUserLikes()', function(params, c
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getUserFollowing = Tumblr._log('getUserFollowing()', function(params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/following', params, callbacks, opts, token);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/following', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 /**
@@ -635,7 +648,7 @@ Tumblr.prototype.getUserFollowing = Tumblr._log('getUserFollowing()', function(p
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.follow = Tumblr._log('follow()', function(url, callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/follow', {url: url}, callbacks, opts, token);
+	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/follow', {url: url}, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 /**
@@ -649,7 +662,7 @@ Tumblr.prototype.follow = Tumblr._log('follow()', function(url, callbacks, opts,
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.unfollow = Tumblr._log('unfollow()', function(url, callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/unfollow', {url: url}, callbacks, opts, token);
+	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/unfollow', {url: url}, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 /**
@@ -664,7 +677,7 @@ Tumblr.prototype.unfollow = Tumblr._log('unfollow()', function(url, callbacks, o
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.like = Tumblr._log('like()', function(id, reblogKey, callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/like', {id: id, reblog_key: reblogKey}, callbacks, opts, token);
+	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/like', {id: id, reblog_key: reblogKey}, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 /**
@@ -679,7 +692,7 @@ Tumblr.prototype.like = Tumblr._log('like()', function(id, reblogKey, callbacks,
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.unlike = Tumblr._log('unlike()', function(id, reblogKey, callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/unlike', {id: id, reblog_key: reblogKey}, callbacks, opts, token);
+	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/unlike', {id: id, reblog_key: reblogKey}, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 /**
@@ -694,5 +707,5 @@ Tumblr.prototype.unlike = Tumblr._log('unlike()', function(id, reblogKey, callba
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getTagged = Tumblr._log('getTagged()', function(tag, params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/tagged', Object.assign({tag: encodeURIComponent(tag)}, params), callbacks, opts, token);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/tagged', Object.assign({tag: encodeURIComponent(tag)}, params), callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
