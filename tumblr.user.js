@@ -3,7 +3,7 @@
 // @description Tumblr api(v2) library for Grease Monkey scripts.
 // @license     https://raw.githubusercontent.com/reppets/tumblr-lib-gm/master/LICENSE
 // @namespace   reppets.net
-// @version     1.0.0
+// @version     1.0.1
 // @require     https://cdn.rawgit.com/ddo/oauth-1.0a/91557b7ef8c38dad6a22f9471a5d0dc216a1afd4/oauth-1.0a.js
 // @grant       GM_xmlhttpRequest
 // ==/UserScript==
