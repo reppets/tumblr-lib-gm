@@ -707,5 +707,5 @@ Tumblr.prototype.unlike = Tumblr._log('unlike()', function(id, reblogKey, callba
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getTagged = Tumblr._log('getTagged()', function(tag, params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/tagged', Object.assign({tag: encodeURIComponent(tag)}, params), callbacks, this._responseTypeDefault(opts, 'json'), token);
+	return this._apiKeyRequest('GET', 'https://api.tumblr.com/v2/tagged', Object.assign({tag: tag}, params), callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
