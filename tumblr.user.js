@@ -250,7 +250,7 @@ Tumblr.prototype._oauthRequest = Tumblr._log('_oauthRequest()', function(method,
 	args.url=url;
 	var newData = {}
 	for (var key in data) {
-		if (map[key]===undefined || map[key]===null) {
+		if (data[key]===undefined || data[key]===null) {
 			continue;
 		}
 		newData[key] = data[key];
