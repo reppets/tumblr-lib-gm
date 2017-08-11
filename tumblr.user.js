@@ -3,7 +3,7 @@
 // @description Tumblr api(v2) library for Grease Monkey scripts.
 // @license     https://raw.githubusercontent.com/reppets/tumblr-lib-gm/master/LICENSE
 // @namespace   reppets.net
-// @version     1.0.1
+// @version     1.0.2
 // @require     https://cdn.rawgit.com/ddo/oauth-1.0a/91557b7ef8c38dad6a22f9471a5d0dc216a1afd4/oauth-1.0a.js
 // @grant       GM_xmlhttpRequest
 // ==/UserScript==
@@ -207,7 +207,7 @@ Tumblr._parseURL = function(url) {
 Tumblr._buildQuery = function(map, withQuestion) {
 	var ar = [];
 	for (var key in map) {
-		if (! map[key]) {
+		if (map[key]===undefined || map[key]===null) {
 			continue;
 		}
 		ar.push(encodeURIComponent(key)+'='+encodeURIComponent(map[key]));
