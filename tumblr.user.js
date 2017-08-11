@@ -248,7 +248,14 @@ Tumblr.prototype._oauthRequest = Tumblr._log('_oauthRequest()', function(method,
 	var args=this._buildArgs(callbacks, opts);
 	args.method=method;
 	args.url=url;
-	args.data = data;
+	var newData = {}
+	for (var key in data) {
+		if (map[key]===undefined || map[key]===null) {
+			continue;
+		}
+		newData[key] = data[key];
+	}
+	args.data = newData;
 	if (method==='POST') {
 		args.headers = {'Content-Type': 'application/x-www-form-urlencoded'};
 	}
