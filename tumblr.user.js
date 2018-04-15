@@ -260,7 +260,7 @@ Tumblr.prototype._oauthRequest = Tumblr._log(function _oauthRequest(method, url,
 	}
 	args.headers = this.oauthClient.mergeObject(
 		args.headers ? args.headers : {},
-		this.oauthClient.toHeader(this.oauthClient.authorize(args, token)));
+		this.oauthClient.toHeader(this.oauthClient.authorize(args, token)));	// authorize function uses only url, method, data properties.
 	if (method==='GET') {
 		var parser = Tumblr._parseURL(url);
 		parser.search = Tumblr._buildQuery(data, true);
@@ -286,7 +286,7 @@ Tumblr.prototype._oauthRequest = Tumblr._log(function _oauthRequest(method, url,
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype._apiKeyRequest = function(method, url, data, callbacks, opts) {
-	return this._simpleRequest(method, url, Object.assign({'api_key': this.oauthClient.consumer.key}, data), callbacks, opts);
+	return this._simpleRequest(method, url, Object.assign({'api_key': this.oauthClient.consumer.key}, data), this._buildArgs(callbacks, opts));
 };
 
 /**
@@ -301,8 +301,7 @@ Tumblr.prototype._apiKeyRequest = function(method, url, data, callbacks, opts) {
  * @param {object} opts - key-value map of options which is passed to GM_xmlHttpRequest. Acceptable keys are 'context', 'synchronous' and 'timeout'.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype._simpleRequest = Tumblr._log(function _simpleRequest(method, url, data, callbacks, opts) {
-	var args=this._buildArgs(callbacks, opts);
+Tumblr.prototype._simpleRequest = Tumblr._log(function _simpleRequest(method, url, data, args) {
 	args.method=method;
 	if (method==='GET') {
 		var parser=Tumblr._parseURL(url);
@@ -344,14 +343,14 @@ Tumblr.prototype._buildArgs = function(callbacks, opts) {
 	return args;
 };
 
-Tumblr.prototype._responseTypeDefault = function(opts, defaultValue) {
-	if (opts) {
-		if (!opts.responseType && opts.synchronous!==true) {
-			opts = Object.assign({}, opts);
-			opts['responseType'] = defaultValue;
+Tumblr.prototype._responseTypeDefault = function(args, defaultValue) {
+	if (args != null) {
+		if (args.responseType != null && args.synchronous!==true) { // if synchronous is true, setting responseType causes an error.
+			args = Object.assign({}, args);
+			args['responseType'] = defaultValue;
 		}
 	} else {
-		opts={responseType: defaultValue};
+		args={responseType: defaultValue};
 	}
 	return opts;
 }
@@ -420,9 +419,9 @@ Tumblr.prototype.getBlogInfo = Tumblr._log(function getBlogInfo(blogID, callback
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.getAvatar = Tumblr._log(function getAvatar(blogID, size, callbacks, opts) {
+Tumblr.prototype.getAvatar = Tumblr._log(function getAvatar(blogID, size, args) {
 	size = size ? size : '';
-	return this._simpleRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/avatar/' + size, null, callbacks, this._responseTypeDefault(opts, 'arraybuffer'));
+	return this._simpleRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/avatar/' + size, null, this._responseTypeDefault(args, 'arraybuffer'));
 });
 
 /**
