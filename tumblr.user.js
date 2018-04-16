@@ -218,9 +218,9 @@ Tumblr._buildQuery = function(map, withQuestion) {
 Tumblr._sift = function(obj, slot) {
 	let data = {};
 	slot.forEach(e => {
-		if(obj[slot] != null) {
-			data[slot] = obj[slot]
-			delete obj[slot];
+		if(obj[e] != null) {
+			data[e] = obj[e]
+			delete obj[e];
 		};
 	});
 	return data;
@@ -272,7 +272,6 @@ Tumblr.prototype.getToken = function() {
  */
 Tumblr.prototype._oauthRequest = Tumblr._log(function _oauthRequest(method, url, data, args) {
 	let token = args.token ? args.token : this.token;
-	if (token == null) throw 'no access token is specified';
 
 	args.method=method;
 	args.url=url;
@@ -338,9 +337,8 @@ Tumblr.prototype._simpleRequest = Tumblr._log(function _simpleRequest(method, ur
 
 Tumblr.prototype._responseTypeDefault = function(args, defaultValue) {
 	if (args != null) {
-		if (args.responseType != null && args.synchronous!==true) { // if synchronous is true, setting responseType causes an error.
-			args = Object.assign({}, args);
-			args['responseType'] = defaultValue;
+		if (args.responseType == null && args.synchronous!==true) { // if synchronous is true, setting responseType causes an error.
+			args.responseType = defaultValue;
 		}
 	} else {
 		args={responseType: defaultValue};
@@ -648,6 +646,7 @@ Tumblr.prototype.getUserInfo = Tumblr._log(function getUserInfo(params) {
 Tumblr.prototype.getUserDashboard = Tumblr._log(function getUserDashboard(params) {
 	params = Object.assign({}, params);
 	let data = Tumblr._sift(params, ['limit', 'offset', 'type', 'since_id', 'reblog_info', 'notes_info']);
+	console.log(data);
 	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/dashboard', data, this._responseTypeDefault(params, 'json'));
 });
 
