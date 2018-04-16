@@ -589,7 +589,7 @@ Tumblr.prototype.reblog = Tumblr._log(function reblog(params) {
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.deletePost = Tumblr._log(function deletePost(blogID, id, callbacks, opts, token) {
+Tumblr.prototype.deletePost = Tumblr._log(function deletePost(params) {
 	params = Object.assign({}, params);
 	Tumblr._requires(params, ['blogID', 'id']);
 	let data = Tumblr._sift(params, ['id']);
@@ -686,7 +686,7 @@ Tumblr.prototype.follow = Tumblr._log(function follow(params) {
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.unfollow = Tumblr._log(function unfollow(url, callbacks, opts, token) {
+Tumblr.prototype.unfollow = Tumblr._log(function unfollow(params) {
 	params = Object.assign({}, params);
 	Tumblr._requires(params, ['url']);
 	let data = Tumblr._sift(params, ['url']);
@@ -704,7 +704,7 @@ Tumblr.prototype.unfollow = Tumblr._log(function unfollow(url, callbacks, opts, 
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.like = Tumblr._log(function like(id, reblogKey, callbacks, opts, token) {
+Tumblr.prototype.like = Tumblr._log(function like(params) {
 	params = Object.assign({}, params);
 	Tumblr._requires(params, ['id', 'reblog_key']);
 	let data = Tumblr._sift(params, ['id', 'reblog_key']);
