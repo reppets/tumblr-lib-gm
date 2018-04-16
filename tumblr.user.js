@@ -214,6 +214,34 @@ Tumblr._buildQuery = function(map, withQuestion) {
 	return (withQuestion ? '?' : '') +ar.join('&');
 };
 
+
+Tumblr._sift = function(obj, slot) {
+	let data = {};
+	slot.forEach(e => {
+		if(obj[slot] != null) {
+			data[slot] = obj[slot]
+			delete obj[slot];
+		};
+	});
+	return data;
+}
+
+Tumblr._requires = function(ob, requiredProps) {
+	let notProvided = [];
+	requiredProps.forEach(e=> {
+		if (ob[e] == null) {
+			notProvided.push(e);
+		}
+	});
+	if (notProvided.length > 0) {
+		throw 'required parameters are not provided: '+notProvided.join(', ');
+	}
+}
+
+Tumblr._normalizeBlogID = function(blogID) {
+	return blogID.endsWith('.tumblr.com') ? blogID : blogID+'.tumblr.com';
+}
+
 /**
  * sets access token to the client.
  * 
@@ -744,30 +772,3 @@ Tumblr.prototype.getTagged = Tumblr._log(function getTagged(params) {
 	params = this._responseTypeDefault(params, 'json');
 	return this._apiKeyRequest('GET', 'https://api.tumblr.com/v2/tagged', data, params);
 });
-
-Tumblr._sift = function(obj, slot) {
-	let data = {};
-	slot.forEach(e => {
-		if(obj[slot] != null) {
-			data[slot] = obj[slot]
-			delete obj[slot];
-		};
-	});
-	return data;
-}
-
-Tumblr._requires = function(ob, requiredProps) {
-	let notProvided = [];
-	requiredProps.forEach(e=> {
-		if (ob[e] == null) {
-			notProvided.push(e);
-		}
-	});
-	if (notProvided.length > 0) {
-		throw 'required parameters are not provided: '+notProvided.join(', ');
-	}
-}
-
-Tumblr._normalizeBlogID = function(blogID) {
-	return blogID.endsWith('.tumblr.com') ? blogID : blogID+'.tumblr.com';
-}
