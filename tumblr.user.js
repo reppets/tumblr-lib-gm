@@ -241,20 +241,12 @@ Tumblr.prototype.setToken = function(accessKey, accessSecret) {
  * @param {object} t - request token to override the one was set before.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype._oauthRequest = Tumblr._log(function _oauthRequest(method, url, data, callbacks, opts, t) {
-	var token = t ? t : this.token;
+Tumblr.prototype._oauthRequest = Tumblr._log(function _oauthRequest(method, url, data, args) {
+	let token = params.token ? params.token : this.token;
 
-	var args=this._buildArgs(callbacks, opts);
 	args.method=method;
 	args.url=url;
-	var newData = {}
-	for (var key in data) {
-		if (data[key]===undefined || data[key]===null) {
-			continue;
-		}
-		newData[key] = data[key];
-	}
-	args.data = newData;
+	args.data = data;
 	if (method==='POST') {
 		args.headers = {'Content-Type': 'application/x-www-form-urlencoded'};
 	}
@@ -262,7 +254,7 @@ Tumblr.prototype._oauthRequest = Tumblr._log(function _oauthRequest(method, url,
 		args.headers ? args.headers : {},
 		this.oauthClient.toHeader(this.oauthClient.authorize(args, token)));	// authorize function uses only url, method, data properties.
 	if (method==='GET') {
-		var parser = Tumblr._parseURL(url);
+		let parser = Tumblr._parseURL(url);
 		parser.search = Tumblr._buildQuery(data, true);
 		args.url = parser.href;
 		args.data = {};
@@ -314,35 +306,6 @@ Tumblr.prototype._simpleRequest = Tumblr._log(function _simpleRequest(method, ur
 	return GM_xmlhttpRequest(args);
 });
 
-/**
- * builds an args object for API call.
- * 
- * @function
- * @protected
- * @param {object} callbacks - key-value map of callback functions.
- * @param {object} opts - key-value map of options which is passed to GM_xmlHttpRequest.
- * @return {object} args object.
- */
-Tumblr.prototype._buildArgs = function(callbacks, opts) {
-	var args={};
-	if(opts) {
-		args.context=opts.context;
-		args.synchronous=opts.synchronous;
-		args.timeout=opts.timeout;
-		args.responseType=opts.responseType;
-	}
-
-	if(callbacks) {
-		args.onabort=callbacks.onabort;
-		args.onerror=callbacks.onerror;
-		args.onload=callbacks.onload;
-		args.onprogress=callbacks.onprogress;
-		args.onreadystatechange=callbacks.onreadystatechange;
-		args.ontimeout=callbacks.ontimeout;
-	}
-	return args;
-};
-
 Tumblr.prototype._responseTypeDefault = function(args, defaultValue) {
 	if (args != null) {
 		if (args.responseType != null && args.synchronous!==true) { // if synchronous is true, setting responseType causes an error.
@@ -364,8 +327,11 @@ Tumblr.prototype._responseTypeDefault = function(args, defaultValue) {
  * @param {object} [opts] - key-value map of options which is passed to GM_xmlHttpRequest. Acceptable keys are 'context', 'synchronous' and 'timeout'.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.getRequestToken = Tumblr._log(function getRequestToken(callbackURL, callbacks, opts) {
-	return this._oauthRequest('POST', 'https://www.tumblr.com/oauth/request_token', {oauth_callback: callbackURL}, callbacks, opts, null);
+Tumblr.prototype.getRequestToken = Tumblr._log(function getRequestToken(params) {
+	params = Object.assign({}, params);
+	Tumblr._requires(params, ['oauth_callback']);
+	let data = Tumblr._sift(params, ['oauth_callback']);
+	return this._oauthRequest('POST', 'https://www.tumblr.com/oauth/request_token', data, params);
 });
 
 /**
@@ -390,8 +356,11 @@ Tumblr.prototype.getAuthorizeURL = function(requestToken) {
  * @param {object} [opts] - key-value map of options which is passed to GM_xmlHttpRequest. Acceptable keys are 'context', 'synchronous' and 'timeout'.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.getAccessToken = Tumblr._log(function getAccessToken(oauthToken, oauthTokenSecret, oauthVerifier, callbacks, opts) {
-	return this._oauthRequest('POST', 'https://www.tumblr.com/oauth/access_token', {oauth_verifier: oauthVerifier}, callbacks, opts, {key: oauthToken, secret:oauthTokenSecret});
+Tumblr.prototype.getAccessToken = Tumblr._log(function getAccessToken(params) {
+	params = Object.assign({}, params);
+	Tumblr._requires(params, ['token', 'oauth_verifier']);
+	let data = Tumblr._sift(params, ['oauth_verifier']);
+	return this._oauthRequest('POST', 'https://www.tumblr.com/oauth/access_token', data, params);
 });
 
 /**
@@ -405,6 +374,7 @@ Tumblr.prototype.getAccessToken = Tumblr._log(function getAccessToken(oauthToken
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getBlogInfo = Tumblr._log(function getBlogInfo(params) {
+	params = Object.assign({}, params);
 	Tumblr._requires(params, ['blogID']);
 	params = this._responseTypeDefault(params, 'json');
 	return this._apiKeyRequest('GET', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(blogID) + '/info', null, params);
@@ -421,9 +391,11 @@ Tumblr.prototype.getBlogInfo = Tumblr._log(function getBlogInfo(params) {
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.getAvatar = Tumblr._log(function getAvatar(blogID, size, args) {
-	size = size ? size : '';
-	return this._simpleRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/avatar/' + size, null, this._responseTypeDefault(args, 'arraybuffer'));
+Tumblr.prototype.getAvatar = Tumblr._log(function getAvatar(params) {
+	params = Object.assign({}, params);
+	Tumblr._requires(params, ['blogID']);
+	let size = params.size ? params.size : '';
+	return this._simpleRequest('GET', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(params.blogID) + '/avatar/' + size, null, this._responseTypeDefault(params, 'arraybuffer'));
 });
 
 /**
@@ -434,7 +406,7 @@ Tumblr.prototype.getAvatar = Tumblr._log(function getAvatar(blogID, size, args) 
  * @param {number} size - size of the avatar. It must be one of (16, 24, 30, 40, 48, 64, 96, 128, 512). The default value is 64.
  * @return {string} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.getAvatarURL = Tumblr._log(function getAvatar(blogID, size) {
+Tumblr.prototype.getAvatarURL = Tumblr._log(function getAvatarURL(blogID, size) {
 	return 'https://api.tumblr.com/v2/blog/' + blogID + '/avatar/' + (size ? size : '');
 });
 
@@ -449,10 +421,10 @@ Tumblr.prototype.getAvatarURL = Tumblr._log(function getAvatar(blogID, size) {
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getLikes = Tumblr._log(function getLikes(params) {
-	let data = Tumblr._slot(params, ['limit', 'offset', 'before', 'after']);
+	params = Object.assign({}, params);
 	Tumblr._requires(params, ['blogID']);
-	params = this._responseTypeDefault(params, 'json');
-	return this._apiKeyRequest('GET', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(params.blogID) + '/likes', params);
+	let data = Tumblr._sift(params, ['limit', 'offset', 'before', 'after']);
+	return this._apiKeyRequest('GET', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(params.blogID) + '/likes', data,	this._responseTypeDefault(params, 'json'));
 });
 
 /**
@@ -466,8 +438,11 @@ Tumblr.prototype.getLikes = Tumblr._log(function getLikes(params) {
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.getFollowers = Tumblr._log(function getFollowers(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/'+blogID+'/followers', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
+Tumblr.prototype.getFollowers = Tumblr._log(function getFollowers(params) {
+	params = Object.assign({}, params);
+	Tumblr._requires(params, ['blogID']);
+	let data = Tumblr._sift(params, ['limit', 'offset']);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/'+Tumblr._normalizeBlogID(params.blogID)+'/followers', data, this._responseTypeDefault(params, 'json'));
 });
 
 /**
@@ -482,8 +457,9 @@ Tumblr.prototype.getFollowers = Tumblr._log(function getFollowers(blogID, params
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getPosts = Tumblr._log(function getPosts(params) {
+	params = Object.assign({}, params);
 	Tumblr._requires(params, ['blogID']);
-	let data = Tumblr._slot(params, ['id', 'tag', 'limit', 'offset', 'reblog_info', 'notes_info', 'filter', 'before']);
+	let data = Tumblr._sift(params, ['id', 'tag', 'limit', 'offset', 'reblog_info', 'notes_info', 'filter', 'before']);
 	params = this._responseTypeDefault(params, 'json');
 	return this._request('GET', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(blogID) + '/posts' + (params.type ? '/'+params.type : ''), data, params);
 });
@@ -499,8 +475,11 @@ Tumblr.prototype.getPosts = Tumblr._log(function getPosts(params) {
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.getQueue = Tumblr._log(function getQueue(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/posts/queue', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
+Tumblr.prototype.getQueue = Tumblr._log(function getQueue(params) {
+	params = Object.assign({}, params);
+	Tumblr._requires(params, ['blogID']);
+	let data = Tumblr._sift(params, ['offset', 'limit', 'filter']);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(params.blogID) + '/posts/queue', data, this._responseTypeDefault(params, 'json'));
 });
 
 /**
@@ -514,8 +493,11 @@ Tumblr.prototype.getQueue = Tumblr._log(function getQueue(blogID, params, callba
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.getDrafts = Tumblr._log(function getDrafts(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/'+blogID+'/posts/draft', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
+Tumblr.prototype.getDrafts = Tumblr._log(function getDrafts(params) {
+	params = Object.assign({}, params);
+	Tumblr._requires(params, ['blogID']);
+	let data = Tumblr._sift(params, ['before_id', 'filter']);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/'+Tumblr._normalizeBlogID(params.blogID)+'/posts/draft', data, this._responseTypeDefault(params, 'json'));
 });
 
 
@@ -530,8 +512,11 @@ Tumblr.prototype.getDrafts = Tumblr._log(function getDrafts(blogID, params, call
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.getSubmissions = Tumblr._log(function getSubmission(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/' + blogID + '/posts/submission', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
+Tumblr.prototype.getSubmissions = Tumblr._log(function getSubmission(params) {
+	params = Object.assign({}, params);
+	Tumblr._requires(params, ['blogID']);
+	let data = Tumblr._sift(params,['offset', 'filter']);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(params.blogID) + '/posts/submission', data, this._responseTypeDefault(params, 'json'));
 });
 
 /**
@@ -545,8 +530,11 @@ Tumblr.prototype.getSubmissions = Tumblr._log(function getSubmission(blogID, par
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.post = Tumblr._log(function post(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + blogID +'/post', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
+Tumblr.prototype.post = Tumblr._log(function post(params) {
+	params = Object.assign({}, params);
+	Tumblr._requires(params, ['blogID']);
+	let data = Tumblr._sift(params, ['type', 'state', 'tags', 'tweet', 'date', 'format', 'slug', 'native_inline_images', 'title', 'body', 'caption', 'link', 'source', 'data', 'data64', 'quote', 'url', 'description', 'thumbnail', 'excerpt', 'author', 'conversation', 'external_url', 'embed']);
+	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(params.blogID) +'/post', data, this._responseTypeDefault(params, 'json'));
 });
 
 /**
@@ -560,8 +548,11 @@ Tumblr.prototype.post = Tumblr._log(function post(blogID, params, callbacks, opt
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.editPost = Tumblr._log(function editPost(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + blogID +'/post/edit', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
+Tumblr.prototype.editPost = Tumblr._log(function editPost(params) {
+	params = Object.assign({}, params);
+	Tumblr._requires(params, ['blogID']);
+	let data = Tumblr._sift(params, ['id', 'type', 'state', 'tags', 'tweet', 'date', 'format', 'slug', 'native_inline_images', 'title', 'body', 'caption', 'link', 'source', 'data', 'data64', 'quote', 'url', 'description', 'thumbnail', 'excerpt', 'author', 'conversation', 'external_url', 'embed']);
+	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(params.blogID) +'/post/edit', data, this._responseTypeDefault(params, 'json'));
 });
 
 /**
@@ -575,8 +566,11 @@ Tumblr.prototype.editPost = Tumblr._log(function editPost(blogID, params, callba
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.reblog = Tumblr._log(function reblog(blogID, params, callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + blogID + '/post/reblog', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
+Tumblr.prototype.reblog = Tumblr._log(function reblog(params) {
+	params = Object.assign({}, params);
+	Tumblr._requires(params, ['blogID']);
+	let data = Tumblr._sift(params, ['id', 'reblog_key', 'comment', 'type', 'state', 'tags', 'tweet', 'date', 'format', 'slug', 'native_inline_images', 'title', 'body', 'caption', 'link', 'source', 'data', 'data64', 'quote', 'url', 'description', 'thumbnail', 'excerpt', 'author', 'conversation', 'external_url', 'embed']);
+	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(params.blogID) + '/post/reblog', data, this._responseTypeDefault(params, 'json'));
 });
 
 /**
@@ -591,7 +585,10 @@ Tumblr.prototype.reblog = Tumblr._log(function reblog(blogID, params, callbacks,
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.deletePost = Tumblr._log(function deletePost(blogID, id, callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + blogID + '/post/delete', {id: id}, callbacks, this._responseTypeDefault(opts, 'json'), token);
+	params = Object.assign({}, params);
+	Tumblr._requires(params, ['blogID']);
+	let data = Tumblr._sift(params, ['id']);
+	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(params.blogID) + '/post/delete', data, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
 
 /**
@@ -603,8 +600,9 @@ Tumblr.prototype.deletePost = Tumblr._log(function deletePost(blogID, id, callba
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.getUserInfo = Tumblr._log(function getUserInfo(callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/info', null, callbacks, this._responseTypeDefault(opts, 'json'), token);
+Tumblr.prototype.getUserInfo = Tumblr._log(function getUserInfo(params) {
+	params = Object.assign({}, params);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/info', null, this._responseTypeDefault(params, 'json'));
 });
 
 /**
@@ -617,8 +615,10 @@ Tumblr.prototype.getUserInfo = Tumblr._log(function getUserInfo(callbacks, opts,
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.getUserDashboard = Tumblr._log(function getUserDashboard(params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/dashboard', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
+Tumblr.prototype.getUserDashboard = Tumblr._log(function getUserDashboard(params) {
+	params = Object.assign({}, params);
+	let data = Tumblr._sift(params, ['limit', 'offset', 'type', 'since_id', 'reblog_info', 'notes_info']);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/dashboard', data, this._responseTypeDefault(params, 'json'));
 });
 
 /**
@@ -631,8 +631,10 @@ Tumblr.prototype.getUserDashboard = Tumblr._log(function getUserDashboard(params
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.getUserLikes = Tumblr._log(function getUserLikes(params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/likes', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
+Tumblr.prototype.getUserLikes = Tumblr._log(function getUserLikes(params) {
+	params = Object.assign({}, params);
+	let data = Tumblr._sift(params, ['limit', 'offset', 'before', 'after']);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/likes', data, this._responseTypeDefault(params, 'json'));
 });
 
 
@@ -646,8 +648,10 @@ Tumblr.prototype.getUserLikes = Tumblr._log(function getUserLikes(params, callba
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.getUserFollowing = Tumblr._log(function getUserFollowing(params, callbacks, opts, token) {
-	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/following', params, callbacks, this._responseTypeDefault(opts, 'json'), token);
+Tumblr.prototype.getUserFollowing = Tumblr._log(function getUserFollowing(params) {
+	params = Object.assign({}, params);
+	let data = Tumblr._sift(params, ['limit', 'offset']);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/user/following', data, this._responseTypeDefault(params, 'json'));
 });
 
 /**
@@ -660,8 +664,11 @@ Tumblr.prototype.getUserFollowing = Tumblr._log(function getUserFollowing(params
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.follow = Tumblr._log(function follow(url, callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/follow', {url: url}, callbacks, this._responseTypeDefault(opts, 'json'), token);
+Tumblr.prototype.follow = Tumblr._log(function follow(params) {
+	params = Object.assign({}, params);
+	Tumblr._requires(params, ['url']);
+	let data = Tumblr._sift(params, ['url']);
+	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/follow', data, this._responseTypeDefault(params, 'json'));
 });
 
 /**
@@ -675,7 +682,10 @@ Tumblr.prototype.follow = Tumblr._log(function follow(url, callbacks, opts, toke
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.unfollow = Tumblr._log(function unfollow(url, callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/unfollow', {url: url}, callbacks, this._responseTypeDefault(opts, 'json'), token);
+	params = Object.assign({}, params);
+	Tumblr._requires(params, ['url']);
+	let data = Tumblr._sift(params, ['url']);
+	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/unfollow', data, this._responseTypeDefault(params, 'json'));
 });
 
 /**
@@ -690,7 +700,10 @@ Tumblr.prototype.unfollow = Tumblr._log(function unfollow(url, callbacks, opts, 
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.like = Tumblr._log(function like(id, reblogKey, callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/like', {id: id, reblog_key: reblogKey}, callbacks, this._responseTypeDefault(opts, 'json'), token);
+	params = Object.assign({}, params);
+	Tumblr._requires(params, ['id', 'reblog_key']);
+	let data = Tumblr._sift(params, ['id', 'reblog_key']);
+	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/like', data, this._responseTypeDefault(params, 'json'));
 });
 
 /**
@@ -704,13 +717,16 @@ Tumblr.prototype.like = Tumblr._log(function like(id, reblogKey, callbacks, opts
  * @param {object} [token] - access token to override the current token. It must be contains 'key' and 'secret' as keys.
  * @return {object} returened object from GM_xmlhttpRequest.
  */
-Tumblr.prototype.unlike = Tumblr._log(function unlike(id, reblogKey, callbacks, opts, token) {
-	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/unlike', {id: id, reblog_key: reblogKey}, callbacks, this._responseTypeDefault(opts, 'json'), token);
+Tumblr.prototype.unlike = Tumblr._log(function unlike(params) {
+	params = Object.assign({}, params);
+	Tumblr._requires(params, ['id', 'reblog_key']);
+	let data = Tumblr._sift(params, ['id', 'reblog_key']);
+	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/user/unlike', data, this._responseTypeDefault(params, 'json'));
 });
 
 /**
  * retrieves tagged posts.
- * pp
+ * 
  * @function
  * @param {string} tag - The tag on the posts you'd like to retrieve
  * @param {Object} [params] - map of parameters. Valid parameters are 'before', 'limit' and 'filter'.
@@ -720,15 +736,21 @@ Tumblr.prototype.unlike = Tumblr._log(function unlike(id, reblogKey, callbacks, 
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getTagged = Tumblr._log(function getTagged(params) {
-	let data = Tumblr._slot(params, ['tag', 'before', 'limit', 'filter']);
+	params = Object.assign({}, params);
+	let data = Tumblr._sift(params, ['tag', 'before', 'limit', 'filter']);
 	Tumblr._requires(data, ['tag']);
 	params = this._responseTypeDefault(params, 'json');
 	return this._apiKeyRequest('GET', 'https://api.tumblr.com/v2/tagged', data, params);
 });
 
-Tumblr._slot = function(ob, slot) {
+Tumblr._sift = function(obj, slot) {
 	let data = {};
-	slot.forEach(e => {if(ob[slot] != null) {data[slot] = ob[slot]}} );
+	slot.forEach(e => {
+		if(obj[slot] != null) {
+			data[slot] = obj[slot]
+			delete obj[slot];
+		};
+	});
 	return data;
 }
 
