@@ -16,7 +16,7 @@
  * @param {string} consumerSecret - OAuth consumer secret of the application.
  * @param {number} [logLevel] - Log level. Select one of {@link Tumblr.LOG_NONE}, {@link Tumblr.LOG_ERROR} or {@link Tumblr.LOG_DEBUG}.
  */
-var Tumblr = function(consumerKey, consumerSecret, logLevel) {
+var Tumblr = function(consumerToken, logLevel) {
 	function sha1(source) {
 		source = source.concat(0x80);
 
@@ -125,10 +125,7 @@ var Tumblr = function(consumerKey, consumerSecret, logLevel) {
 	}
 
 	this.oauthClient = OAuth({
-		consumer: {
-			key: consumerKey,
-			secret: consumerSecret
-		},
+		consumer: consumerToken,
 		signature_method: 'HMAC-SHA1',
 		hash_function: function(baseString, key) {
 			baseString = typeof baseString === 'string' ? utf8ToBytes(baseString) : baseString;
