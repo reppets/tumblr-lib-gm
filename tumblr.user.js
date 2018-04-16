@@ -483,7 +483,7 @@ Tumblr.prototype.getFollowers = Tumblr._log(function getFollowers(blogID, params
  */
 Tumblr.prototype.getPosts = Tumblr._log(function getPosts(params) {
 	Tumblr._requires(params, ['blogID']);
-	let data = Tumblr._slot(params, ['id', 'tag', 'limit', 'offset', 'reblog_info', 'notes_info', 'filter']);
+	let data = Tumblr._slot(params, ['id', 'tag', 'limit', 'offset', 'reblog_info', 'notes_info', 'filter', 'before']);
 	params = this._responseTypeDefault(params, 'json');
 	return this._request('GET', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(blogID) + '/posts' + (params.type ? '/'+params.type : ''), data, params);
 });
