@@ -224,8 +224,12 @@ Tumblr._buildQuery = function(map, withQuestion) {
  * @param {string} accessKey - OAuth access token.
  * @param {string} accessSecret - OAuth access token secret.
  */
-Tumblr.prototype.setToken = function(accessKey, accessSecret) {
-	this.token = {key:accessKey, secret:accessSecret};
+Tumblr.prototype.setToken = function(token) {
+	this.token = token;
+}
+
+Tumblr.prototype.getToken = function() {
+	return Object.assign({}, this.token);
 }
 
 /**
@@ -242,7 +246,8 @@ Tumblr.prototype.setToken = function(accessKey, accessSecret) {
  * @return {object} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype._oauthRequest = Tumblr._log(function _oauthRequest(method, url, data, args) {
-	let token = params.token ? params.token : this.token;
+	let token = args.token ? args.token : this.token;
+	if (token == null) throw 'no access token is specified';
 
 	args.method=method;
 	args.url=url;
@@ -407,7 +412,7 @@ Tumblr.prototype.getAvatar = Tumblr._log(function getAvatar(params) {
  * @return {string} returened object from GM_xmlhttpRequest.
  */
 Tumblr.prototype.getAvatarURL = Tumblr._log(function getAvatarURL(blogID, size) {
-	return 'https://api.tumblr.com/v2/blog/' + blogID + '/avatar/' + (size ? size : '');
+	return 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(blogID) + '/avatar/' + (size ? size : '');
 });
 
 /**
@@ -532,7 +537,7 @@ Tumblr.prototype.getSubmissions = Tumblr._log(function getSubmission(params) {
  */
 Tumblr.prototype.post = Tumblr._log(function post(params) {
 	params = Object.assign({}, params);
-	Tumblr._requires(params, ['blogID']);
+	Tumblr._requires(params, ['blogID', 'type']);
 	let data = Tumblr._sift(params, ['type', 'state', 'tags', 'tweet', 'date', 'format', 'slug', 'native_inline_images', 'title', 'body', 'caption', 'link', 'source', 'data', 'data64', 'quote', 'url', 'description', 'thumbnail', 'excerpt', 'author', 'conversation', 'external_url', 'embed']);
 	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(params.blogID) +'/post', data, this._responseTypeDefault(params, 'json'));
 });
@@ -586,7 +591,7 @@ Tumblr.prototype.reblog = Tumblr._log(function reblog(params) {
  */
 Tumblr.prototype.deletePost = Tumblr._log(function deletePost(blogID, id, callbacks, opts, token) {
 	params = Object.assign({}, params);
-	Tumblr._requires(params, ['blogID']);
+	Tumblr._requires(params, ['blogID', 'id']);
 	let data = Tumblr._sift(params, ['id']);
 	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(params.blogID) + '/post/delete', data, callbacks, this._responseTypeDefault(opts, 'json'), token);
 });
