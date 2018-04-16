@@ -555,7 +555,7 @@ Tumblr.prototype.post = Tumblr._log(function post(params) {
  */
 Tumblr.prototype.editPost = Tumblr._log(function editPost(params) {
 	params = Object.assign({}, params);
-	Tumblr._requires(params, ['blogID']);
+	Tumblr._requires(params, ['blogID', 'id']);
 	let data = Tumblr._sift(params, ['id', 'type', 'state', 'tags', 'tweet', 'date', 'format', 'slug', 'native_inline_images', 'title', 'body', 'caption', 'link', 'source', 'data', 'data64', 'quote', 'url', 'description', 'thumbnail', 'excerpt', 'author', 'conversation', 'external_url', 'embed']);
 	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(params.blogID) +'/post/edit', data, this._responseTypeDefault(params, 'json'));
 });
@@ -573,7 +573,7 @@ Tumblr.prototype.editPost = Tumblr._log(function editPost(params) {
  */
 Tumblr.prototype.reblog = Tumblr._log(function reblog(params) {
 	params = Object.assign({}, params);
-	Tumblr._requires(params, ['blogID']);
+	Tumblr._requires(params, ['blogID', 'id', 'reblog_key']);
 	let data = Tumblr._sift(params, ['id', 'reblog_key', 'comment', 'type', 'state', 'tags', 'tweet', 'date', 'format', 'slug', 'native_inline_images', 'title', 'body', 'caption', 'link', 'source', 'data', 'data64', 'quote', 'url', 'description', 'thumbnail', 'excerpt', 'author', 'conversation', 'external_url', 'embed']);
 	return this._oauthRequest('POST', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(params.blogID) + '/post/reblog', data, this._responseTypeDefault(params, 'json'));
 });
