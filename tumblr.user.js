@@ -489,7 +489,7 @@ Tumblr.prototype.getPosts = Tumblr._log(function getPosts(params) {
 	Tumblr._requires(params, ['blogID']);
 	let data = Tumblr._sift(params, ['id', 'tag', 'limit', 'offset', 'reblog_info', 'notes_info', 'filter', 'before']);
 	params = this._responseTypeDefault(params, 'json');
-	return this._request('GET', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(params.blogID) + '/posts' + (params.type ? '/'+params.type : ''), data, params);
+	return this._oauthRequest('GET', 'https://api.tumblr.com/v2/blog/' + Tumblr._normalizeBlogID(params.blogID) + '/posts' + (params.type ? '/'+params.type : ''), data, params);
 });
 
 /**
