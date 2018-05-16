@@ -257,6 +257,10 @@ Tumblr.prototype.getToken = function() {
 	return Object.assign({}, this.token);
 }
 
+Tumblr.prototype.getConsumerToken = function() {
+	return Object.assign({}, this.oauthClient.consumer);
+}
+
 /**
  * makes a request with the OAuth tokens.
  * 
